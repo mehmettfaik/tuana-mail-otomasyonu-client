@@ -37,13 +37,12 @@ const Dashboard = () => {
       }
     ]);
 
-    // Ülke listesi sayfası
-    const countryData = COUNTRIES.map(c => ({ 'Ülke Adı': c }));
-    const wsCountries = XLSX.utils.json_to_sheet(countryData);
+    // Ülke listesini aynı sayfada I sütununa (boş H sütunundan sonra) yaz
+    const countryRows = [['Ülke Listesi'], ...COUNTRIES.map(c => [c])];
+    XLSX.utils.sheet_add_aoa(ws, countryRows, { origin: 'I1' });
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Contacts");
-    XLSX.utils.book_append_sheet(wb, wsCountries, "Ülkeler");
     XLSX.writeFile(wb, "B2B_Kontak_Taslagi.xlsx");
   };
 
