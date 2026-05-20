@@ -6,6 +6,20 @@ const api = axios.create({
   timeout: 60000, // 60 saniye — Render cold start için yeterli süre
 });
 
+// Request interceptor — her isteğe localStorage'daki token'ı ekle
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Retry interceptor — ağ hatalarında otomatik tekrar dene (cold start koruması)
 api.interceptors.response.use(
   (response) => response,

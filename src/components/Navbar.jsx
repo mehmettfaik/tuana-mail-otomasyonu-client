@@ -11,6 +11,7 @@ const Navbar = ({ onToggleAutomation, senderName, setSenderName }) => {
       await api.post('/api/auth/logout');
       localStorage.removeItem('isLoggedIn');
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('token');
       navigate('/login');
     } catch (error) {
       console.error('Logout failed', error);
