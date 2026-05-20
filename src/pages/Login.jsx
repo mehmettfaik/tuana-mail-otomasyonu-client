@@ -22,7 +22,13 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      if (err.response) {
+        // Sunucu yanıt verdi ama hata döndü (401, 500 vb.)
+        setError(err.response.data?.error || 'Giriş başarısız');
+      } else {
+        // Ağ hatası veya timeout — büyük ihtimalle Render cold start
+        setError('Sunucu uyanıyor, lütfen birkaç saniye bekleyip tekrar deneyin...');
+      }
     } finally {
       setLoading(false);
     }
