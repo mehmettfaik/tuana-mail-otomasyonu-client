@@ -7,7 +7,7 @@ import StatsCards from '../components/StatsCards.jsx';
 import ContactTable from '../components/ContactTable.jsx';
 import EmailModal from '../components/EmailModal.jsx';
 import EmailAutomationPanel from '../components/EmailAutomationPanel.jsx';
-import { generateGuessedEmails } from '../utils/emailPredictor.js';
+import { generateGuessedEmails, COUNTRIES } from '../utils/emailPredictor.js';
 
 const Dashboard = () => {
   const [contacts, setContacts] = useState([]);
@@ -36,8 +36,14 @@ const Dashboard = () => {
         'Mevcut Email': ''
       }
     ]);
+
+    // Ülke listesi sayfası
+    const countryData = COUNTRIES.map(c => ({ 'Ülke Adı': c }));
+    const wsCountries = XLSX.utils.json_to_sheet(countryData);
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Contacts");
+    XLSX.utils.book_append_sheet(wb, wsCountries, "Ülkeler");
     XLSX.writeFile(wb, "B2B_Kontak_Taslagi.xlsx");
   };
 
