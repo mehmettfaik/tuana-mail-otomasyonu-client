@@ -68,7 +68,7 @@ const Dashboard = () => {
       const response = await api.get(`/api/contacts?${queryParams.toString()}`);
       setContacts(response.data.data);
       setTotalPages(Math.ceil(response.data.total / response.data.limit));
-      
+
       // Fetch stats only if it's the first page or automation is open to avoid unnecessary calls
       if (page === 1) {
         fetchStats();
@@ -154,7 +154,7 @@ const Dashboard = () => {
       console.error(err);
       alert('Failed to import contacts');
     }
-    
+
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -169,7 +169,7 @@ const Dashboard = () => {
       <EmailAutomationPanel isOpen={automationOpen} onClose={() => setAutomationOpen(false)} senderName={senderName} />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <StatsCards stats={stats} />
-        
+
         <div className="mb-6 flex flex-col lg:flex-row justify-between items-center gap-4">
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
             <div className="relative flex-1 sm:w-64">
@@ -189,6 +189,7 @@ const Dashboard = () => {
               <option value="all">Tüm Durumlar</option>
               <option value="sent">Gönderildi</option>
               <option value="pending">Bekliyor</option>
+              <option value="opened">Açıldı</option>
             </select>
           </div>
 
@@ -222,7 +223,7 @@ const Dashboard = () => {
         </div>
 
         {error && <div className="mb-4 text-red-500 text-sm">{error}</div>}
-        
+
         {loading ? (
           <div className="text-center py-10">Loading contacts...</div>
         ) : (
