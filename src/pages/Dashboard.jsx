@@ -91,16 +91,6 @@ const Dashboard = () => {
     fetchContacts();
   }, [page, search, filterStatus]);
 
-  // Otomasyon açıkken veya sayfa 1'deyken kontakları 30 sn'de bir yenile (dashboard sayaçları güncellenir)
-  useEffect(() => {
-    if (!automationOpen && page !== 1) return;
-    const interval = setInterval(() => {
-      fetchContacts();
-      fetchStats();
-    }, 30000);
-    return () => clearInterval(interval);
-  }, [automationOpen, page, search, filterStatus]);
-
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
       try {
