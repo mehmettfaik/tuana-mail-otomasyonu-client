@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import api from '../api/api.js';
 import Navbar from '../components/Navbar.jsx';
+import UploadPopup from '../components/UploadPopup.jsx';
 import { generateGuessedEmails, COUNTRIES } from '../utils/emailPredictor.js';
 
 const ContactForm = () => {
@@ -20,7 +21,7 @@ const ContactForm = () => {
   
   const [formData, setFormData] = useState(initialForm);
   const [loading, setLoading] = useState(false);
-  const [uploadLoading, setUploadLoading] = useState(false);
+  const [uploadState, setUploadState] = useState({ status: 'idle', message: '' });
   const [companyMatches, setCompanyMatches] = useState([]);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -103,8 +104,9 @@ const ContactForm = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setUploadState({ status: 'processing', message: '' });
+
     try {
-      setUploadLoading(true);
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data, { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
@@ -136,22 +138,32 @@ const ContactForm = () => {
 
       if (contactsWithGuesses.length > 0) {
         const response = await api.post('/api/contacts/bulk', { contacts: contactsWithGuesses });
-        alert(`${response.data.count} contacts imported successfully!`);
-        navigate('/dashboard');
+        setUploadState({ status: 'success', message: `${response.data.count} kontak başarıyla yüklendi!` });
+        setTimeout(() => {
+            navigate('/dashboard');
+        }, 1500);
       } else {
-        alert('No valid contacts found in Excel file. Please ensure First Name columns exist.');
+        setUploadState({ status: 'error', message: 'Excel dosyasında geçerli kontak bulunamadı. Lütfen "Ad" sütununun olduğundan emin olun.' });
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to import contacts');
+      setUploadState({ status: 'error', message: 'Kontaklar yüklenirken bir hata oluştu.' });
     } finally {
-      setUploadLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
+  const closeUploadPopup = () => {
+    setUploadState({ status: 'idle', message: '' });
+  };
+
   return (
     <div className="min-h-screen bg-white">
+      <UploadPopup 
+        status={uploadState.status} 
+        message={uploadState.message} 
+        onClose={closeUploadPopup} 
+      />
       <Navbar />
       <main className="max-w-2xl mx-auto py-10 px-4 sm:px-6 lg:px-8 relative">
         <div className="absolute top-10 right-4 sm:right-6 lg:right-8">
@@ -341,7 +353,6 @@ const ContactForm = () => {
               </label>
             </div>
             <p className="text-xs text-gray-500 mt-2">.xlsx, .xls</p>
-            {uploadLoading && <p className="mt-4 text-black font-medium text-sm">Yükleniyor, lütfen bekleyin...</p>}
           </div>
         )}
       </main>

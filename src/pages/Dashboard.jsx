@@ -7,6 +7,7 @@ import StatsCards from '../components/StatsCards.jsx';
 import ContactTable from '../components/ContactTable.jsx';
 import EmailModal from '../components/EmailModal.jsx';
 import EmailAutomationPanel from '../components/EmailAutomationPanel.jsx';
+import UploadPopup from '../components/UploadPopup.jsx';
 import { generateGuessedEmails, COUNTRIES } from '../utils/emailPredictor.js';
 
 const Dashboard = () => {
@@ -20,6 +21,7 @@ const Dashboard = () => {
   const [senderName, setSenderName] = useState('Selin'); // Account toggle
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [uploadState, setUploadState] = useState({ status: 'idle', message: '' });
   const fileInputRef = useRef(null);
   const [automationOpen, setAutomationOpen] = useState(false);
   const navigate = useNavigate();
@@ -114,6 +116,8 @@ const Dashboard = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setUploadState({ status: 'processing', message: '' });
+
     try {
       const data = await file.arrayBuffer();
       const wb = XLSX.read(data, { type: 'array' });
@@ -145,14 +149,14 @@ const Dashboard = () => {
 
       if (contactsWithGuesses.length > 0) {
         const response = await api.post('/api/contacts/bulk', { contacts: contactsWithGuesses });
-        alert(`${response.data.count} kontak başarıyla yüklendi!`);
+        setUploadState({ status: 'success', message: `${response.data.count} kontak başarıyla yüklendi!` });
         fetchContacts();
       } else {
-        alert('Excel dosyasında geçerli kontak bulunamadı. Lütfen "Ad" sütununun olduğundan emin olun.');
+        setUploadState({ status: 'error', message: 'Excel dosyasında geçerli kontak bulunamadı. Lütfen "Ad" sütununun olduğundan emin olun.' });
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to import contacts');
+      setUploadState({ status: 'error', message: 'Kontaklar yüklenirken bir hata oluştu.' });
     }
 
     // Reset file input
@@ -165,6 +169,11 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <UploadPopup 
+        status={uploadState.status} 
+        message={uploadState.message} 
+        onClose={() => setUploadState({ status: 'idle', message: '' })} 
+      />
       <Navbar onToggleAutomation={() => setAutomationOpen(!automationOpen)} senderName={senderName} setSenderName={setSenderName} />
       <EmailAutomationPanel isOpen={automationOpen} onClose={() => setAutomationOpen(false)} senderName={senderName} />
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
