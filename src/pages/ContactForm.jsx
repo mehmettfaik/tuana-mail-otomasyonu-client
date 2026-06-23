@@ -138,10 +138,32 @@ const ContactForm = () => {
 
       if (contactsWithGuesses.length > 0) {
         const response = await api.post('/api/contacts/bulk', { contacts: contactsWithGuesses });
-        setUploadState({ status: 'success', message: `${response.data.count} kontak başarıyla yüklendi!` });
-        setTimeout(() => {
+        const { count, duplicateCount, duplicates } = response.data;
+
+        if (duplicateCount > 0 && count > 0) {
+          // Some inserted, some duplicates
+          const dupNames = duplicates.map(d => `${d.first_name} ${d.last_name}`).join(', ');
+          setUploadState({
+            status: 'success',
+            message: `${count} kontak yüklendi. ${duplicateCount} mükerrer kontak atlandı (${dupNames}${duplicateCount > 20 ? '...' : ''}).`
+          });
+        } else if (duplicateCount > 0 && count === 0) {
+          // All duplicates, none inserted
+          const dupNames = duplicates.map(d => `${d.first_name} ${d.last_name}`).join(', ');
+          setUploadState({
+            status: 'error',
+            message: `Tüm kontaklar zaten mevcut (${duplicateCount} mükerrer): ${dupNames}${duplicateCount > 20 ? '...' : ''}`
+          });
+        } else {
+          // All new, no duplicates
+          setUploadState({ status: 'success', message: `${count} kontak başarıyla yüklendi!` });
+        }
+
+        if (count > 0) {
+          setTimeout(() => {
             navigate('/dashboard');
-        }, 1500);
+          }, 2000);
+        }
       } else {
         setUploadState({ status: 'error', message: 'Excel dosyasında geçerli kontak bulunamadı. Lütfen "Ad" sütununun olduğundan emin olun.' });
       }
