@@ -138,31 +138,34 @@ const ContactForm = () => {
 
       if (contactsWithGuesses.length > 0) {
         const response = await api.post('/api/contacts/bulk', { contacts: contactsWithGuesses });
-        const { count, duplicateCount, duplicates } = response.data;
+        console.log('Bulk upload response:', response.data);
+        const count = response.data.count || 0;
+        const duplicateCount = response.data.duplicateCount || 0;
+        const duplicates = response.data.duplicates || [];
 
-        if (duplicateCount > 0 && count > 0) {
-          // Some inserted, some duplicates
-          const dupNames = duplicates.map(d => `${d.first_name} ${d.last_name}`).join(', ');
-          setUploadState({
-            status: 'success',
-            message: `${count} kontak yüklendi. ${duplicateCount} mükerrer kontak atlandı (${dupNames}${duplicateCount > 20 ? '...' : ''}).`
-          });
-        } else if (duplicateCount > 0 && count === 0) {
+        if (duplicateCount > 0 && count === 0) {
           // All duplicates, none inserted
           const dupNames = duplicates.map(d => `${d.first_name} ${d.last_name}`).join(', ');
           setUploadState({
             status: 'error',
-            message: `Tüm kontaklar zaten mevcut (${duplicateCount} mükerrer): ${dupNames}${duplicateCount > 20 ? '...' : ''}`
+            message: `Hiçbir kontak eklenmedi! ${duplicateCount} kontağın tamamı zaten veritabanında mevcut: ${dupNames}${duplicateCount > 20 ? '...' : ''}`
           });
+        } else if (duplicateCount > 0 && count > 0) {
+          // Some inserted, some duplicates
+          const dupNames = duplicates.map(d => `${d.first_name} ${d.last_name}`).join(', ');
+          setUploadState({
+            status: 'success',
+            message: `${count} yeni kontak eklendi. ${duplicateCount} mükerrer kontak atlandı (${dupNames}${duplicateCount > 20 ? '...' : ''}).`
+          });
+          setTimeout(() => {
+            navigate('/dashboard');
+          }, 2500);
         } else {
           // All new, no duplicates
           setUploadState({ status: 'success', message: `${count} kontak başarıyla yüklendi!` });
-        }
-
-        if (count > 0) {
           setTimeout(() => {
             navigate('/dashboard');
-          }, 2000);
+          }, 1500);
         }
       } else {
         setUploadState({ status: 'error', message: 'Excel dosyasında geçerli kontak bulunamadı. Lütfen "Ad" sütununun olduğundan emin olun.' });
